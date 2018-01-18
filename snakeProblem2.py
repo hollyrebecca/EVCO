@@ -8,6 +8,7 @@ import math
 from functools import partial
 
 import numpy
+import pygraphviz as pgv
 
 from deap import algorithms 
 from deap import base
@@ -519,7 +520,23 @@ def main():
 
 	best = tools.selBest(pop, 1)[0]
 
+	# display the run of the best individual	
 	displayStrategyRun(best)
+
+	# section for creating graph to represent the evolution
+	expr = toolbox.individual()
+	nodes, edges, labels = gp.graph(expr)
+	g = pgv.AGraph()
+	g.add_nodes_from(nodes)
+	g.add_edges_from(edges)
+	g.layout(prog="dot")
+
+	for i in nodes:
+		n = g.get_node(i)
+		n.attr["label"]=labels[i]
+
+	g.draw("tree.pdf")
+
 
 	#return pop, hof, stats
 
