@@ -25,8 +25,8 @@ NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.8 # probability of mating
-MUTX = 0 # probability of mutation
-NCOUNT = 1
+MUTX = 0.5 # probability of mutation
+NCOUNT = 4
 
 def progn(*args):
     for arg in args:
@@ -411,6 +411,7 @@ def runGame(individual):
 	return TOTALFOOD - totalScore,
 	#return totalScore,
 
+
 #TO-DO
 
 #PrimitiveSet definitions
@@ -507,7 +508,7 @@ def main():
 
 	## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
 	pop = toolbox.population(n=NPOP)
-	hof = tools.HallOfFame(1)
+	hof = tools.HallOfFame(3)
 
 	stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 	stats_size = tools.Statistics(len)

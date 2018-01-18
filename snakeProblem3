@@ -9,7 +9,6 @@ from functools import partial
 
 import numpy
 import pygraphviz as pgv
-import matplotlib.pyplot as plt
 
 from deap import algorithms 
 from deap import base
@@ -25,8 +24,8 @@ NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.8 # probability of mating
-MUTX = 0 # probability of mutation
-NCOUNT = 1
+MUTX = 0.5 # probability of mutation
+NCOUNT = 4
 
 def progn(*args):
     for arg in args:
@@ -411,6 +410,27 @@ def runGame(individual):
 	return TOTALFOOD - totalScore,
 	#return totalScore,
 
+
+
+def avgRunGame(individual):
+	global pset
+
+	routine = gp.compile(individual, pset)
+
+	aggScore = 0
+
+	for x in range(0, NCOUNT):
+		routine()
+		
+		score = runGame(routine)
+
+		aggScore += score[0]
+
+	avgScore = aggScore/NCOUNT
+
+	return avgScore,
+
+
 #TO-DO
 
 #PrimitiveSet definitions
@@ -461,6 +481,7 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.ex
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", runGame)
+#toolbox.register("evaluate", avgRunGame)
 toolbox.register("select", tools.selTournament, tournsize=7)
 #toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
@@ -475,29 +496,6 @@ toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max
 
 toolbox.register("compile", gp.compile, pset=pset)
 
-def plotGraph(logbook):
-	gen = logbook.select("gen")
-	fit_mins = logbook.chapters["fitness"].select("min")
-	size_avgs = logbook.chapters["size"].select("avg")
-
-	fig, ax1 = plt.subplots()
-	line1 = ax1.plot(gen, fit_mins, "b-", label="Minimum Fitness")
-	ax1.set_xlabel("Generation")
-	ax1.set_ylabel("Fitness", color="b")
-	for tl in ax1.get_yticklabels():
-	    tl.set_color("b")
-
-	ax2 = ax1.twinx()
-	line2 = ax2.plot(gen, size_avgs, "r-", label="Average Size")
-	ax2.set_ylabel("Size", color="r")
-	for tl in ax2.get_yticklabels():
-	    tl.set_color("r")
-
-	lns = line1 + line2
-	labs = [l.get_label() for l in lns]
-	ax1.legend(lns, labs, loc="center right")
-
-	fig.savefig('plot.png')
 
 def main():
 	global snake
