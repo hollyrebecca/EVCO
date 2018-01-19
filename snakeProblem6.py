@@ -412,6 +412,7 @@ def runGame(individual):
 	#return totalScore,
 
 
+
 #TO-DO
 
 #PrimitiveSet definitions
@@ -462,8 +463,8 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.ex
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", runGame)
-toolbox.register("select", tools.selTournament, tournsize=7)
-#toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
+#toolbox.register("select", tools.selTournament, tournsize=7)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
@@ -500,6 +501,7 @@ def plotGraph(logbook):
 
 	fig.savefig('plot.png')
 
+
 def main():
 	global snake
 	global pset
@@ -508,7 +510,7 @@ def main():
 
 	## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
 	pop = toolbox.population(n=NPOP)
-	hof = tools.HallOfFame(1)
+	hof = tools.HallOfFame(3)
 
 	stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 	stats_size = tools.Statistics(len)

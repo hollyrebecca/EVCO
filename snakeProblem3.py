@@ -26,7 +26,7 @@ NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.8 # probability of mating
 MUTX = 0.5 # probability of mutation
-NCOUNT = 4
+NCOUNT = 1
 
 def progn(*args):
     for arg in args:
@@ -523,12 +523,14 @@ def main():
 
 	best = tools.selBest(pop, 1)[0]
 
+	plotGraph(logbook)
+
 	# display the run of the best individual	
 	displayStrategyRun(best)
 
 	# section for creating graph to represent the evolution
-	expr = toolbox.individual()
-	nodes, edges, labels = gp.graph(expr)
+	#expr = toolbox.individual()
+	nodes, edges, labels = gp.graph(best)
 	g = pgv.AGraph()
 	g.add_nodes_from(nodes)
 	g.add_edges_from(edges)
@@ -547,3 +549,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

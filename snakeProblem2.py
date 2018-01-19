@@ -525,6 +525,8 @@ def main():
 	# display the run of the best individual	
 	displayStrategyRun(best)
 
+	plotGraph(logbook)
+
 	# section for creating graph to represent the evolution
 	#expr = toolbox.individual()
 	nodes, edges, labels = gp.graph(best)
@@ -546,3 +548,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
