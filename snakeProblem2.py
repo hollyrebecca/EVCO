@@ -22,7 +22,7 @@ XSIZE,YSIZE = 14,14
 NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
-NPOP = 1000 # size of the population
+NPOP = 10000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.8 # probability of mating
 MUTX = 0 # probability of mutation
@@ -95,16 +95,16 @@ class SnakePlayer(list):
 
 	## You are free to define more sensing options to the snake
 
-	def changeDirectionUp(self):
+	def goUp(self):
 		self.direction = S_UP
 
-	def changeDirectionRight(self):
+	def goRight(self):
 		self.direction = S_RIGHT
 
-	def changeDirectionDown(self):
+	def goDown(self):
 		self.direction = S_DOWN
 
-	def changeDirectionLeft(self):
+	def goLeft(self):
 		self.direction = S_LEFT
 
 	def stayStraight(self):
@@ -434,15 +434,15 @@ pset.addPrimitive(snake.ifFoodRight, 2, name="ifFoodRight")
 #pset.addPrimitive(snake.ifFoodDown, 2, name="ifFoodDown")
 #pset.addPrimitive(snake.ifFoodLeft, 2, name="ifFoodLeft")
 
-pset.addTerminal(snake.changeDirectionUp, name="changeDirectionUp")
-pset.addTerminal(snake.changeDirectionDown, name="changeDirectionDown")
-pset.addTerminal(snake.changeDirectionRight, name="changeDirectionRight")
-pset.addTerminal(snake.changeDirectionLeft, name="changeDirectionLeft")
+pset.addTerminal(snake.goUp, name="goUp")
+pset.addTerminal(snake.goDown, name="goDown")
+pset.addTerminal(snake.goRight, name="goRight")
+pset.addTerminal(snake.goLeft, name="goLeft")
 pset.addTerminal(snake.stayStraight, name="stayStraight")
-#pset.addTerminal(snake.changeDirectionUp)
-#pset.addTerminal(snake.changeDirectionDown)
-#pset.addTerminal(snake.changeDirectionRight)
-#pset.addTerminal(snake.changeDirectionLeft)
+#pset.addTerminal(snake.goUp)
+#pset.addTerminal(snake.goDown)
+#pset.addTerminal(snake.goRight)
+#pset.addTerminal(snake.goLeft)
 #pset.addTerminal(snake.stayStraight)
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -497,7 +497,7 @@ def plotGraph(logbook):
 	labs = [l.get_label() for l in lns]
 	ax1.legend(lns, labs, loc="center right")
 
-	fig.savefig('plot.png')
+	fig.savefig("/usr/userfs/h/hrh517/Downloads/plot.png")
 
 def main():
 	global snake
@@ -526,8 +526,8 @@ def main():
 	displayStrategyRun(best)
 
 	# section for creating graph to represent the evolution
-	expr = toolbox.individual()
-	nodes, edges, labels = gp.graph(expr)
+	#expr = toolbox.individual()
+	nodes, edges, labels = gp.graph(best)
 	g = pgv.AGraph()
 	g.add_nodes_from(nodes)
 	g.add_edges_from(edges)
