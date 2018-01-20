@@ -367,13 +367,14 @@ def runGame(individual):
 
 	routine = gp.compile(individual, pset)
 
-	totalScore = 0
-
-	snake._reset()
-	food = placeFood(snake)
-	timer = 0
 	aggScore = 0
 	for x in range(0, NCOUNT):
+		totalScore = 0
+
+		snake._reset()
+		food = placeFood(snake)
+		timer = 0
+
 		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
 
 			#if snake.score == (XSIZE * YSIZE) - snake.initial+1:
@@ -410,8 +411,9 @@ def runGame(individual):
 			return TOTALFOOD + distanceFromFood,
 		#	return 0 - distanceFromFood,
 
-	aggScore += (TOTALFOOD - totalScore)
-	avgScore = aggScore/runs
+		aggScore += (TOTALFOOD - totalScore)
+
+	avgScore = aggScore/NCOUNT
 	return avgScore,
 
 def evalRunGame(individual, runs):
@@ -420,13 +422,14 @@ def evalRunGame(individual, runs):
 
 	routine = gp.compile(individual, pset)
 
-	totalScore = 0
-
-	snake._reset()
-	food = placeFood(snake)
-	timer = 0
 	aggScore = 0
 	for x in range(0, runs):
+		totalScore = 0
+
+		snake._reset()
+		food = placeFood(snake)
+		timer = 0
+
 		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
 
 			## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
@@ -455,7 +458,8 @@ def evalRunGame(individual, runs):
 
 			return TOTALFOOD + distanceFromFood,
 
-	aggScore += (TOTALFOOD - totalScore)
+		aggScore += (TOTALFOOD - totalScore)
+
 	avgScore = aggScore/runs
 	return avgScore,
 
@@ -574,8 +578,8 @@ def main():
 
 		best = tools.selBest(pop, 1)[0]
 
-		evalRuns = 5
-		evalRunGame(best, evalRuns)
+		#evalRuns = 5
+		#evalRunGame(best, evalRuns)
 
 		# display the run of the best individual	
 		displayStrategyRun(best)
