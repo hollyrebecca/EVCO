@@ -10,6 +10,7 @@ from functools import partial
 import numpy
 import pygraphviz as pgv
 import matplotlib.pyplot as plt
+import multiprocessing
 
 from deap import algorithms 
 from deap import base
@@ -371,6 +372,7 @@ def runGame(individual):
 	snake._reset()
 	food = placeFood(snake)
 	timer = 0
+	aggScore = 0
 	for x in range(0, NCOUNT):
 		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
 
@@ -408,8 +410,56 @@ def runGame(individual):
 			return TOTALFOOD + distanceFromFood,
 		#	return 0 - distanceFromFood,
 
-	return TOTALFOOD - totalScore,
+	aggScore += (TOTALFOOD - totalScore)
+	avgScore = aggScore / NCOUNT
+
+	return avgScore,
 	#return totalScore,
+
+def evalRunGame(individual, runs):
+	global snake
+	global pset
+
+	routine = gp.compile(individual, pset)
+
+	totalScore = 0
+
+	snake._reset()
+	food = placeFood(snake)
+	timer = 0
+	aggScore = 0
+	for x in range(0, runs):
+		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
+
+			## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
+			routine()
+
+			snake.updatePosition()
+
+			if snake.body[0] in food:
+				snake.score += 1
+				food = placeFood(snake)
+				timer = 0
+			else:    
+				snake.body.pop()
+				timer += 1 # timesteps since last eaten
+		
+			totalScore += snake.score
+			snake.score = 0
+
+
+		if totalScore == 0:
+			distanceFromFood = 10
+			ydist = math.sqrt((int(snake.food[0][0]) - int(snake.body[0][0]))**2)
+			xdist = math.sqrt((int(snake.food[0][1]) - int(snake.body[0][1]))**2)
+
+			distanceFromFood = math.ceil(ydist) + math.ceil(xdist)
+
+			return TOTALFOOD + distanceFromFood,
+
+	aggScore += (TOTALFOOD - totalScore)
+	avgScore = aggScore/runs
+	return avgScore,
 
 #TO-DO
 
@@ -505,6 +555,9 @@ def main():
 
 	#random.seed(128)
 
+	pool = multiprocessing.Pool()
+	toolbox.register("map", pool.map)
+
 	## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
 	pop = toolbox.population(n=NPOP)
 	hof = tools.HallOfFame(1)
@@ -517,15 +570,24 @@ def main():
 	mstats.register("min", numpy.min)
 	mstats.register("max", numpy.max)
 
-	pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTX, 
-					NGEN, stats=mstats, halloffame=hof, verbose=True)
+	try:
+		pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTX, 
+						NGEN, stats=mstats, halloffame=hof, verbose=True)
 
-	best = tools.selBest(pop, 1)[0]
+		best = tools.selBest(pop, 1)[0]
 
-	# display the run of the best individual	
-	displayStrategyRun(best)
+		evalRuns = 5
+		evalRunGame(best, evalRuns)
 
-	plotGraph(logbook)
+		# display the run of the best individual	
+		displayStrategyRun(best)
+
+	except KeyboardInterrupt:
+		pool.terminate()
+		pool.join()
+		raise KeyboardInterrupt
+
+	#plotGraph(logbook)
 
 	# section for creating graph to represent the evolution
 	#expr = toolbox.individual()
@@ -542,10 +604,15 @@ def main():
 	g.draw("tree.pdf")
 
 
-	#return pop, hof, stats
+	return mstats.compile()
 
 
 
 if __name__ == "__main__":
-    main()
-
+	for i in range(0, 30):
+		out = main()
+		run = out[0]
+		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
+		runFile = open('control_results.csv', 'a')
+		runFile.write(",".join(map(str,row)))
+		runFile.close()
