@@ -25,9 +25,9 @@ TOTALFOOD = 185 # total possible amount of food that can be eaten
 NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.8 # probability of mating
+CXPB = 0.6 # probability of mating
 MUTX = 0.5 # probability of mutation
-NCOUNT = 4
+NCOUNT = 1
 
 def progn(*args):
     for arg in args:
@@ -625,7 +625,7 @@ if __name__ == "__main__":
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
+		runFile = open('cxpb.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 

@@ -283,6 +283,8 @@ class SnakePlayer(list):
 # This function places a food item in the environment
 def placeFood(snake):
 	food = []
+	if (YSIZE * XSIZE) == len(snake.body):
+		return None
 	while len(food) < NFOOD:
 		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
@@ -306,6 +308,8 @@ def displayStrategyRun(individual):
 	curses.initscr()
 	win = curses.newwin(YSIZE, XSIZE, 0, 0)
 	win.keypad(1)
+	if (YSIZE * XSIZE) == len(snake.body):
+		return None
 	curses.noecho()
 	curses.curs_set(0)
 	win.border(0)
@@ -336,6 +340,8 @@ def displayStrategyRun(individual):
 			snake.score += 1
 			for f in food: win.addch(f[0], f[1], ' ')
 			food = placeFood(snake)
+			if food == None:
+				break
 			for f in food: win.addch(f[0], f[1], '@')
 			timer = 0
 		else:    
@@ -366,12 +372,15 @@ def runGame(individual):
 	global pset
 
 	routine = gp.compile(individual, pset)
+
 	aggScore = 0
 	for x in range(0, NCOUNT):
 		totalScore = 0
+
 		snake._reset()
 		food = placeFood(snake)
 		timer = 0
+
 		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
 
 			#if snake.score == (XSIZE * YSIZE) - snake.initial+1:
@@ -386,6 +395,8 @@ def runGame(individual):
 			if snake.body[0] in food:
 				snake.score += 1
 				food = placeFood(snake)
+				if food == None:
+					break
 				timer = 0
 			else:    
 				snake.body.pop()
@@ -409,8 +420,8 @@ def runGame(individual):
 		#	return 0 - distanceFromFood,
 
 		aggScore += (TOTALFOOD - totalScore)
-		
-	avgScore = aggScore/runs
+
+	avgScore = aggScore/NCOUNT
 	return avgScore,
 
 def evalRunGame(individual, runs):
@@ -418,13 +429,15 @@ def evalRunGame(individual, runs):
 	global pset
 
 	routine = gp.compile(individual, pset)
-	
+
 	aggScore = 0
 	for x in range(0, runs):
 		totalScore = 0
+
 		snake._reset()
 		food = placeFood(snake)
 		timer = 0
+
 		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
 
 			## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
@@ -435,6 +448,8 @@ def evalRunGame(individual, runs):
 			if snake.body[0] in food:
 				snake.score += 1
 				food = placeFood(snake)
+				if food == None:
+					break
 				timer = 0
 			else:    
 				snake.body.pop()
@@ -508,8 +523,8 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.ex
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", runGame)
-#toolbox.register("select", tools.selTournament, tournsize=7)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
+toolbox.register("select", tools.selTournament, tournsize=7)
+#toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
@@ -577,12 +592,13 @@ def main():
 		#evalRunGame(best, evalRuns)
 
 		# display the run of the best individual	
-		displayStrategyRun(best)
+		#displayStrategyRun(best)
 
 	except KeyboardInterrupt:
 		pool.terminate()
 		pool.join()
 		raise KeyboardInterrupt
+		
 
 	#plotGraph(logbook)
 
@@ -600,7 +616,7 @@ def main():
 
 	g.draw("tree.pdf")
 
-	return mstats.compile()
+	return mstats.compile(pop)
 	#return pop, hof, stats
 
 
@@ -608,10 +624,11 @@ def main():
 if __name__ == "__main__":
 	for i in range(0, 30):
 		out = main()
-		run = out[0]
+		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('control_results.csv', 'a')
+		runFile = open('hof.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
+
 
 

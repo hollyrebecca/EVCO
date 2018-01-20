@@ -23,10 +23,10 @@ XSIZE,YSIZE = 14,14
 NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
-NPOP = 1000 # size of the population
+NPOP = 2000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.8 # probability of mating
-MUTX = 0.5 # probability of mutation
+CXPB = 0.6 # probability of mating
+MUTX = 0.6 # probability of mutation
 NCOUNT = 4
 
 def progn(*args):
@@ -96,16 +96,16 @@ class SnakePlayer(list):
 
 	## You are free to define more sensing options to the snake
 
-	def goUp(self):
+	def changeDirectionUp(self):
 		self.direction = S_UP
 
-	def goRight(self):
+	def changeDirectionRight(self):
 		self.direction = S_RIGHT
 
-	def goDown(self):
+	def changeDirectionDown(self):
 		self.direction = S_DOWN
 
-	def goLeft(self):
+	def changeDirectionLeft(self):
 		self.direction = S_LEFT
 
 	def stayStraight(self):
@@ -419,10 +419,8 @@ def runGame(individual):
 
 		aggScore += (TOTALFOOD - totalScore)
 
-	avgScore = aggScore / NCOUNT
-
+	avgScore = aggScore/NCOUNT
 	return avgScore,
-	#return totalScore,
 
 def evalRunGame(individual, runs):
 	global snake
@@ -496,15 +494,15 @@ pset.addPrimitive(snake.ifFoodRight, 2, name="ifFoodRight")
 #pset.addPrimitive(snake.ifFoodDown, 2, name="ifFoodDown")
 #pset.addPrimitive(snake.ifFoodLeft, 2, name="ifFoodLeft")
 
-pset.addTerminal(snake.goUp, name="goUp")
-pset.addTerminal(snake.goDown, name="goDown")
-pset.addTerminal(snake.goRight, name="goRight")
-pset.addTerminal(snake.goLeft, name="goLeft")
+pset.addTerminal(snake.changeDirectionUp, name="changeDirectionUp")
+pset.addTerminal(snake.changeDirectionDown, name="changeDirectionDown")
+pset.addTerminal(snake.changeDirectionRight, name="changeDirectionRight")
+pset.addTerminal(snake.changeDirectionLeft, name="changeDirectionLeft")
 pset.addTerminal(snake.stayStraight, name="stayStraight")
-#pset.addTerminal(snake.goUp)
-#pset.addTerminal(snake.goDown)
-#pset.addTerminal(snake.goRight)
-#pset.addTerminal(snake.goLeft)
+#pset.addTerminal(snake.changeDirectionUp)
+#pset.addTerminal(snake.changeDirectionDown)
+#pset.addTerminal(snake.changeDirectionRight)
+#pset.addTerminal(snake.changeDirectionLeft)
 #pset.addTerminal(snake.stayStraight)
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -523,8 +521,8 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.ex
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", runGame)
-toolbox.register("select", tools.selTournament, tournsize=7)
-#toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
+#toolbox.register("select", tools.selTournament, tournsize=7)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
@@ -559,7 +557,7 @@ def plotGraph(logbook):
 	labs = [l.get_label() for l in lns]
 	ax1.legend(lns, labs, loc="center right")
 
-	fig.savefig("/usr/userfs/h/hrh517/Downloads/plot.png")
+	fig.savefig('plot.png')
 
 def main():
 	global snake
@@ -569,10 +567,10 @@ def main():
 
 	pool = multiprocessing.Pool()
 	toolbox.register("map", pool.map)
-
+	
 	## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
 	pop = toolbox.population(n=NPOP)
-	hof = tools.HallOfFame(1)
+	hof = tools.HallOfFame(3)
 
 	stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 	stats_size = tools.Statistics(len)
@@ -598,6 +596,7 @@ def main():
 		pool.terminate()
 		pool.join()
 		raise KeyboardInterrupt
+		
 
 	#plotGraph(logbook)
 
@@ -615,8 +614,8 @@ def main():
 
 	g.draw("tree.pdf")
 
-
 	return mstats.compile(pop)
+	#return pop, hof, stats
 
 
 
@@ -625,7 +624,9 @@ if __name__ == "__main__":
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
+		runFile = open('selDoubleMuCXPB.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
+
+
 
