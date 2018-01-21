@@ -20,15 +20,15 @@ from deap import gp
 
 S_RIGHT, S_LEFT, S_UP, S_DOWN = 0,1,2,3
 XSIZE,YSIZE = 14,14
-GRIDSIZE = XSIZE*YSIZE
+GRIDSIZE = YSIZE*XSIZE
 NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.8 # probability of mating
+CXPB = 0.6 # probability of mating
 MUTX = 0.5 # probability of mutation
-NCOUNT = 4
+NCOUNT = 1
 
 def progn(*args):
     for arg in args:
@@ -291,6 +291,7 @@ def placeFood(snake):
 		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
 			food.append(potentialfood)
+		timer += 1
 	if timer == GRIDSIZE:
 		return None
 	snake.food = food  # let the snake know where the food is
@@ -530,7 +531,7 @@ toolbox.register("evaluate", runGame)
 toolbox.register("select", tools.selTournament, tournsize=7)
 #toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
-toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
+toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
 #toolbox.register("expr_mut", gp.genFull, min_=0, max_=4)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
@@ -617,7 +618,7 @@ def main():
 		n = g.get_node(i)
 		n.attr["label"]=labels[i]
 
-	g.draw("tree.pdf")
+	g.draw("tree311.pdf")
 
 
 	return mstats.compile(pop)
@@ -629,7 +630,7 @@ if __name__ == "__main__":
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
+		runFile = open('cxOnePoint.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 

@@ -20,15 +20,15 @@ from deap import gp
 
 S_RIGHT, S_LEFT, S_UP, S_DOWN = 0,1,2,3
 XSIZE,YSIZE = 14,14
-GRIDSIZE = XSIZE*YSIZE
+GRIDSIZE = YSIZE*XSIZE
 NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
-NPOP = 1000 # size of the population
+NPOP = 5000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.8 # probability of mating
 MUTX = 0.5 # probability of mutation
-NCOUNT = 4
+NCOUNT = 1
 
 def progn(*args):
     for arg in args:
@@ -291,6 +291,7 @@ def placeFood(snake):
 		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
 			food.append(potentialfood)
+		timer += 1
 	if timer == GRIDSIZE:
 		return None
 	snake.food = food  # let the snake know where the food is
@@ -368,7 +369,7 @@ def displayStrategyRun(individual):
 # There is no graphical output, and it runs rapidly, making it ideal for
 # you need to modify it for running your agents through the game for evaluation
 # which will depend on what type of EA you have used, etc.
-# Feel free to make any necessary modifications to this section.
+# Feel free to make any necessary
 def runGame(individual):
 	global snake
 	global pset
@@ -519,8 +520,8 @@ creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=
 toolbox = base.Toolbox()
 
 # Attribute generator
-toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=6)
-#toolbox.register("expr", gp.genFull, pset=pset, min_=1, max_=4)
+#toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=6)
+toolbox.register("expr", gp.genFull, pset=pset, min_=1, max_=6)
 
 # Structure initializers
 toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
@@ -566,7 +567,7 @@ def plotGraph(logbook):
 	fig.savefig("/usr/userfs/h/hrh517/Downloads/plot.png")
 
 def main():
-	global snake
+	global snake	
 	global pset
 
 	#random.seed(128)
@@ -619,17 +620,14 @@ def main():
 
 	g.draw("tree.pdf")
 
-
 	return mstats.compile(pop)
-
-
 
 if __name__ == "__main__":
 	for i in range(0, 30):
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
+		runFile = open('genFull.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 

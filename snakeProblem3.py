@@ -20,6 +20,7 @@ from deap import gp
 
 S_RIGHT, S_LEFT, S_UP, S_DOWN = 0,1,2,3
 XSIZE,YSIZE = 14,14
+GRIDSIZE = YSIZE*XSIZE
 NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
@@ -283,12 +284,16 @@ class SnakePlayer(list):
 # This function places a food item in the environment
 def placeFood(snake):
 	food = []
-	if (YSIZE * XSIZE) == len(snake.body):
+	if (GRIDSIZE) == len(snake.body):
 		return None
-	while len(food) < NFOOD:
+	timer = 0
+	while len(food) < NFOOD and timer < GRIDSIZE+1:
 		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
 			food.append(potentialfood)
+		timer += 1
+	if timer == GRIDSIZE:
+		return None
 	snake.food = food  # let the snake know where the food is
 	return(food)
 
@@ -365,8 +370,6 @@ def displayStrategyRun(individual):
 # you need to modify it for running your agents through the game for evaluation
 # which will depend on what type of EA you have used, etc.
 # Feel free to make any necessary
-	if (YSIZE * XSIZE) == len(snake.body):
-		return None modifications to this section.
 def runGame(individual):
 	global snake
 	global pset
@@ -381,7 +384,7 @@ def runGame(individual):
 		food = placeFood(snake)
 		timer = 0
 
-		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
+		while not snake.snakeHasCollided() and not timer == GRIDSIZE:
 
 			#if snake.score == (XSIZE * YSIZE) - snake.initial+1:
 			#	break
@@ -440,7 +443,7 @@ def evalRunGame(individual, runs):
 		food = placeFood(snake)
 		timer = 0
 
-		while not snake.snakeHasCollided() and not timer == XSIZE * YSIZE:
+		while not snake.snakeHasCollided() and not timer == GRIDSIZE:
 
 			## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
 			routine()
@@ -615,7 +618,7 @@ def main():
 		n = g.get_node(i)
 		n.attr["label"]=labels[i]
 
-	g.draw("tree.pdf")
+	g.draw("tree3.pdf")
 
 	return mstats.compile(pop)
 

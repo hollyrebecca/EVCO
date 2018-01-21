@@ -26,9 +26,9 @@ TOTALFOOD = 185 # total possible amount of food that can be eaten
 NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.8 # probability of mating
+CXPB = 0.6 # probability of mating
 MUTX = 0.5 # probability of mutation
-NCOUNT = 4
+NCOUNT = 1
 
 def progn(*args):
     for arg in args:
@@ -531,8 +531,7 @@ toolbox.register("select", tools.selTournament, tournsize=7)
 #toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
-toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
-#toolbox.register("expr_mut", gp.genFull, min_=0, max_=4)
+toolbox.register("expr_mut", gp.genFull, min_=0, max_=6)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 #toolbox.register("mutate", gp.mutGaussian, mu=0, sigma=0.4, expr=toolbox.expr_mut, pset=pset)
 
@@ -629,7 +628,7 @@ if __name__ == "__main__":
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
+		runFile = open('mutFull.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 
