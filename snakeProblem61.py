@@ -281,22 +281,37 @@ class SnakePlayer(list):
 	def ifFoodLeft(self, out1, out2):
 		return partial(if_then_else, self.senseFoodLeft, out1, out2)
 
+def emptySpaces(snake):
+	spaces = []
+	for i in range(1, (YSIZE-2)):
+		for j in range(1, (XSIZE-2)):
+			if not [i,j] in snake.body:
+				spaces.append([i,j])
+	return spaces
+
 # This function places a food item in the environment
 def placeFood(snake):
 	food = []
 	if (GRIDSIZE) == len(snake.body):
 		return None
-	timer = 0
-	while len(food) < NFOOD and timer < GRIDSIZE+1:
-		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
-		if not (potentialfood in snake.body) and not (potentialfood in food):
-			food.append(potentialfood)
-		timer += 1
-	if timer == GRIDSIZE:
+	#timer = 0
+	#while len(food) < NFOOD and timer < GRIDSIZE+1:
+	#	potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
+	#	if not (potentialfood in snake.body) and not (potentialfood in food):
+	#		food.append(potentialfood)
+	#	timer += 1
+	#if timer == GRIDSIZE:
+	#	return None
+	spaces = emptySpaces(snake)
+	if len(spaces) == 0:
 		return None
+	while len(food) < NFOOD:
+		pos = random.randint(1, len(spaces))
+		potentialfood = spaces[pos-1]
+		if not (potentialfood in snake.body) and not (potentialfood in food):
+			food.append(potentialfood)	
 	snake.food = food  # let the snake know where the food is
 	return(food)
-
 
 snake = SnakePlayer()
 

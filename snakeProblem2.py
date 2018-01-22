@@ -11,6 +11,7 @@ import numpy
 import pygraphviz as pgv
 import matplotlib.pyplot as plt
 import multiprocessing
+import pickle
 
 from deap import algorithms 
 from deap import base
@@ -281,19 +282,35 @@ class SnakePlayer(list):
 	def ifFoodLeft(self, out1, out2):
 		return partial(if_then_else, self.senseFoodLeft, out1, out2)
 
+def emptySpaces(snake):
+	spaces = []
+	for i in range(1, (YSIZE-2)):
+		for j in range(1, (XSIZE-2)):
+			if not [i,j] in snake.body:
+				spaces.append([i,j])
+	return spaces
+
 # This function places a food item in the environment
 def placeFood(snake):
 	food = []
 	if (GRIDSIZE) == len(snake.body):
 		return None
-	timer = 0
-	while len(food) < NFOOD and timer < GRIDSIZE+1:
-		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
+	#timer = 0
+	#while len(food) < NFOOD and timer < GRIDSIZE+1:
+	#	potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
+	#	if not (potentialfood in snake.body) and not (potentialfood in food):
+	#		food.append(potentialfood)
+	#	timer += 1
+	#if timer == GRIDSIZE:
+	#	return None
+	spaces = emptySpaces(snake)
+	if len(spaces) == 0:
+		return None
+	while len(food) < NFOOD:
+		pos = random.randint(1, len(spaces))
+		potentialfood = spaces[pos-1]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
 			food.append(potentialfood)
-		timer += 1
-	if timer == GRIDSIZE:
-		return None
 	snake.food = food  # let the snake know where the food is
 	return(food)
 
@@ -603,7 +620,7 @@ def main():
 		pool.terminate()
 		pool.join()
 		raise KeyboardInterrupt
-
+	
 	#plotGraph(logbook)
 
 	# section for creating graph to represent the evolution
@@ -618,19 +635,24 @@ def main():
 		n = g.get_node(i)
 		n.attr["label"]=labels[i]
 
-	g.draw("tree.pdf")
+	g.draw("tree2.pdf")
 
 
-	return mstats.compile(pop)
+	return mstats.compile(pop), log
 
 
 
 if __name__ == "__main__":
 	for i in range(0, 30):
 		out = main()
-		run = out
+		run = out[0]
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
+		filename = ('control_results%d' % i)
 		runFile = open('control_results.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
+		logFile = open(filename, 'w+')
+		pickle.dump(out[1], logFile)
+		logFile.close()
+		
 

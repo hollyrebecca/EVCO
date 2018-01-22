@@ -27,7 +27,7 @@ NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
 CXPB = 0.6 # probability of mating
-MUTX = 0.5 # probability of mutation
+MUTX = 0.2 # probability of mutation
 NCOUNT = 1
 
 def progn(*args):
@@ -281,19 +281,35 @@ class SnakePlayer(list):
 	def ifFoodLeft(self, out1, out2):
 		return partial(if_then_else, self.senseFoodLeft, out1, out2)
 
+def emptySpaces(snake):
+	spaces = []
+	for i in range(1, (YSIZE-2)):
+		for j in range(1, (XSIZE-2)):
+			if not [i,j] in snake.body:
+				spaces.append([i,j])
+	return spaces
+
 # This function places a food item in the environment
 def placeFood(snake):
 	food = []
 	if (GRIDSIZE) == len(snake.body):
 		return None
-	timer = 0
-	while len(food) < NFOOD and timer < GRIDSIZE+1:
-		potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
-		if not (potentialfood in snake.body) and not (potentialfood in food):
-			food.append(potentialfood)
-		timer += 1
-	if timer == GRIDSIZE:
+	#timer = 0
+	#while len(food) < NFOOD and timer < GRIDSIZE+1:
+	#	potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
+	#	if not (potentialfood in snake.body) and not (potentialfood in food):
+	#		food.append(potentialfood)
+	#	timer += 1
+	#if timer == GRIDSIZE:
+	#	return None
+	spaces = emptySpaces(snake)
+	if len(spaces) == 0:
 		return None
+	while len(food) < NFOOD:
+		pos = random.randint(1, len(spaces))
+		potentialfood = spaces[pos-1]
+		if not (potentialfood in snake.body) and not (potentialfood in food):
+			food.append(potentialfood)	
 	snake.food = food  # let the snake know where the food is
 	return(food)
 
@@ -533,8 +549,7 @@ toolbox.register("select", tools.selTournament, tournsize=7)
 #toolbox.register("mate", gp.cxUniform)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
-#toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
-toolbox.register("mutate", gp.mutGaussian, mu=0, sigma=0.4, expr=toolbox.expr_mut, pset=pset)
+toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
 toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=maxDepth))
 toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=maxDepth))
@@ -617,7 +632,7 @@ def main():
 		n = g.get_node(i)
 		n.attr["label"]=labels[i]
 
-	g.draw("tree.pdf")
+	g.draw("tree316.pdf")
 
 
 	return mstats.compile(pop)
@@ -629,7 +644,7 @@ if __name__ == "__main__":
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('mutGaussian.csv', 'a+')
+		runFile = open('mut0.2.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 

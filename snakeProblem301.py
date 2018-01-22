@@ -26,7 +26,7 @@ TOTALFOOD = 185 # total possible amount of food that can be eaten
 NGEN = 500 # number of generations
 NPOP = 1000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.6 # probability of mating
+CXPB = 0.8 # probability of mating
 MUTX = 0.5 # probability of mutation
 NCOUNT = 1
 
@@ -385,7 +385,7 @@ def displayStrategyRun(individual):
 # There is no graphical output, and it runs rapidly, making it ideal for
 # you need to modify it for running your agents through the game for evaluation
 # which will depend on what type of EA you have used, etc.
-# Feel free to make any necessary modifications to this section.
+# Feel free to make any necessary
 def runGame(individual):
 	global snake
 	global pset
@@ -547,7 +547,7 @@ toolbox.register("evaluate", runGame)
 toolbox.register("select", tools.selTournament, tournsize=7)
 #toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 #toolbox.register("mate", gp.cxUniform)
-toolbox.register("mate", gp.cxOnePoint)
+toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
 #toolbox.register("expr_mut", gp.genFull, min_=0, max_=4)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
@@ -583,7 +583,7 @@ def plotGraph(logbook):
 	fig.savefig("/usr/userfs/h/hrh517/Downloads/plot.png")
 
 def main():
-	global snake
+	global snake	
 	global pset
 
 	#random.seed(128)
@@ -634,19 +634,16 @@ def main():
 		n = g.get_node(i)
 		n.attr["label"]=labels[i]
 
-	g.draw("tree311.pdf")
-
+	g.draw("tree301.pdf")
 
 	return mstats.compile(pop)
-
-
 
 if __name__ == "__main__":
 	for i in range(0, 30):
 		out = main()
 		run = out
 		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('cxOnePoint.csv', 'a+')
+		runFile = open('pop.csv', 'a+')
 		runFile.write(",".join(map(str,row)))
 		runFile.close()
 
