@@ -20,13 +20,13 @@ from deap import gp
 S_RIGHT, S_LEFT, S_UP, S_DOWN = 0,1,2,3
 XSIZE,YSIZE = 14,14
 GRIDSIZE = XSIZE*YSIZE
-NFOOD = 1 # TODO: CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR THE FOOD (IF THE TAIL IS VERY LONG)
+NFOOD = 1 # number of food available for the snake to eat
 TOTALFOOD = 185 # total possible amount of food that can be eaten 
 NGEN = 500 # number of generations
-NPOP = 1000 # size of the population
+NPOP = 2000 # size of the population
 maxDepth = 17 # depth of the decision tree
-CXPB = 0.8 # probability of mating
-MUTX = 0.5 # probability of mutation
+CXPB = 0.6 # probability of mating
+MUTX = 0.6 # probability of mutation
 NCOUNT = 4
 
 def progn(*args):
@@ -35,9 +35,6 @@ def progn(*args):
 
 def prog2(out1, out2): 
     return partial(progn,out1,out2)
-
-def prog3(out1, out2, out3):     
-    return partial(progn,out1,out2,out3)
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -96,16 +93,16 @@ class SnakePlayer(list):
 
 	## You are free to define more sensing options to the snake
 
-	def goUp(self):
+	def changeDirectionUp(self):
 		self.direction = S_UP
 
-	def goRight(self):
+	def changeDirectionRight(self):
 		self.direction = S_RIGHT
 
-	def goDown(self):
+	def changeDirectionDown(self):
 		self.direction = S_DOWN
 
-	def goLeft(self):
+	def changeDirectionLeft(self):
 		self.direction = S_LEFT
 
 	def stayStraight(self):
@@ -280,6 +277,7 @@ class SnakePlayer(list):
 	def ifFoodLeft(self, out1, out2):
 		return partial(if_then_else, self.senseFoodLeft, out1, out2)
 
+# Returns a list of all the spaces which aren't classed as walls and are not occupied by the snake
 def emptySpaces(snake):
 	spaces = []
 	for i in range(1, (YSIZE-2)):
@@ -293,19 +291,11 @@ def placeFood(snake):
 	food = []
 	if (GRIDSIZE) == len(snake.body):
 		return None
-	#timer = 0
-	#while len(food) < NFOOD and timer < GRIDSIZE+1:
-	#	potentialfood = [random.randint(1, (YSIZE-2)), random.randint(1, (XSIZE-2))]
-	#	if not (potentialfood in snake.body) and not (potentialfood in food):
-	#		food.append(potentialfood)
-	#	timer += 1
-	#if timer == GRIDSIZE:
-	#	return None
-	spaces = emptySpaces(snake)
+	spaces = emptySpaces(snake) 
 	if len(spaces) == 0:
 		return None
 	while len(food) < NFOOD:
-		pos = random.randint(1, len(spaces))
+		pos = random.randint(1, len(spaces)) # random location within the empty spaces
 		potentialfood = spaces[pos-1]
 		if not (potentialfood in snake.body) and not (potentialfood in food):
 			food.append(potentialfood)	
@@ -400,12 +390,8 @@ def runGame(individual):
 
 		while not snake.snakeHasCollided() and not timer == GRIDSIZE:
 
-			#if snake.score == (XSIZE * YSIZE) - snake.initial+1:
-			#	break
-
 			## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
 			routine()
-			#individual()
 
 			snake.updatePosition()
 
@@ -422,11 +408,10 @@ def runGame(individual):
 			totalScore += snake.score
 			snake.score = 0
 
-		#if timer == XSIZE*YSIZE:
-		#	return TOTALFOOD + 5,
-	#		return -5,
+		#if timer == GRIDSIZE:  # penalise if timed out
+		#	aggScore += TOTALFOOD + 5,
 
-		if totalScore == 0:
+		if totalScore == 0:   # penalise if not eaten any food
 			distanceFromFood = 10
 			ydist = math.sqrt((int(snake.food[0][0]) - int(snake.body[0][0]))**2)
 			xdist = math.sqrt((int(snake.food[0][1]) - int(snake.body[0][1]))**2)
@@ -434,14 +419,12 @@ def runGame(individual):
 			distanceFromFood = math.ceil(ydist) + math.ceil(xdist)
 
 			aggScore += TOTALFOOD + distanceFromFood
-		#	return 0 - distanceFromFood,
 		else:
 			aggScore += (TOTALFOOD - totalScore)
 
-	avgScore = aggScore / NCOUNT
-
+	avgScore = aggScore/NCOUNT
 	return avgScore,
-	#return totalScore,
+
 
 def evalRunGame(individual, runs):
 	global snake
@@ -485,19 +468,18 @@ def evalRunGame(individual, runs):
 
 			distanceFromFood = math.ceil(ydist) + math.ceil(xdist)
 
-			return TOTALFOOD + distanceFromFood,
 
-		aggScore += (TOTALFOOD - totalScore)
+			aggScore += TOTALFOOD + distanceFromFood
+		else:
+			aggScore += (TOTALFOOD - totalScore)
 
 	avgScore = aggScore/runs
 	return avgScore,
 
-#TO-DO
 
 #PrimitiveSet definitions
 pset = gp.PrimitiveSet("MAIN", 0)
 pset.addPrimitive(prog2, 2)
-#pset.addPrimitive(prog3, 3)
 
 pset.addPrimitive(snake.ifMovingUp, 2, name="ifMovingUp")
 pset.addPrimitive(snake.ifMovingDown, 2, name="ifMovingDown")
@@ -507,91 +489,51 @@ pset.addPrimitive(snake.ifDangerAhead, 2, name="ifDangerAhead")
 pset.addPrimitive(snake.ifDangerLeft, 2, name="ifDangerLeft")
 pset.addPrimitive(snake.ifDangerRight, 2, name="ifDangerRight")
 pset.addPrimitive(snake.ifDanger2Ahead, 2, name="ifDanger2Ahead")
-#pset.addPrimitive(snake.ifWallAhead, 2, name="ifWallAhead")
-#pset.addPrimitive(snake.ifWall2Ahead, 2, name="ifWall2Ahead")
 pset.addPrimitive(snake.ifFoodAllAhead, 2, name="ifFoodAllAhead")
 pset.addPrimitive(snake.ifFoodUp, 2, name="ifFoodUp")
 pset.addPrimitive(snake.ifFoodRight, 2, name="ifFoodRight")
-#pset.addPrimitive(snake.ifFoodDown, 2, name="ifFoodDown")
-#pset.addPrimitive(snake.ifFoodLeft, 2, name="ifFoodLeft")
 
-pset.addTerminal(snake.goUp, name="goUp")
-pset.addTerminal(snake.goDown, name="goDown")
-pset.addTerminal(snake.goRight, name="goRight")
-pset.addTerminal(snake.goLeft, name="goLeft")
+pset.addTerminal(snake.changeDirectionUp, name="changeDirectionUp")
+pset.addTerminal(snake.changeDirectionDown, name="changeDirectionDown")
+pset.addTerminal(snake.changeDirectionRight, name="changeDirectionRight")
+pset.addTerminal(snake.changeDirectionLeft, name="changeDirectionLeft")
 pset.addTerminal(snake.stayStraight, name="stayStraight")
-#pset.addTerminal(snake.goUp)
-#pset.addTerminal(snake.goDown)
-#pset.addTerminal(snake.goRight)
-#pset.addTerminal(snake.goLeft)
-#pset.addTerminal(snake.stayStraight)
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=pset)
-#creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-#creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax, pset=pset)
 
 toolbox = base.Toolbox()
 
 # Attribute generator
 toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=6)
-#toolbox.register("expr", gp.genFull, pset=pset, min_=1, max_=4)
 
 # Structure initializers
 toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 toolbox.register("evaluate", runGame)
-toolbox.register("select", tools.selTournament, tournsize=7)
-#toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
-#toolbox.register("mate", gp.cxUniform)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=1.2, fitness_first=True)
 toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.1)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=6)
-#toolbox.register("expr_mut", gp.genFull, min_=0, max_=4)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
-#toolbox.register("mutate", gp.mutGaussian, mu=0, sigma=0.4, expr=toolbox.expr_mut, pset=pset)
+
 
 toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=maxDepth))
 toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=maxDepth))
 
 toolbox.register("compile", gp.compile, pset=pset)
 
-def plotGraph(logbook):
-	gen = logbook.select("gen")
-	fit_mins = logbook.chapters["fitness"].select("min")
-	size_avgs = logbook.chapters["size"].select("avg")
-
-	fig, ax1 = plt.subplots()
-	line1 = ax1.plot(gen, fit_mins, "b-", label="Minimum Fitness")
-	ax1.set_xlabel("Generation")
-	ax1.set_ylabel("Fitness", color="b")
-	for tl in ax1.get_yticklabels():
-	    tl.set_color("b")
-
-	ax2 = ax1.twinx()
-	line2 = ax2.plot(gen, size_avgs, "r-", label="Average Size")
-	ax2.set_ylabel("Size", color="r")
-	for tl in ax2.get_yticklabels():
-	    tl.set_color("r")
-
-	lns = line1 + line2
-	labs = [l.get_label() for l in lns]
-	ax1.legend(lns, labs, loc="center right")
-
-	fig.savefig("/usr/userfs/h/hrh517/Downloads/plot.png")
 
 def main():
 	global snake
 	global pset
 
-	#random.seed(128)
-
 	pool = multiprocessing.Pool()
 	toolbox.register("map", pool.map)
-
+	
 	## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
 	pop = toolbox.population(n=NPOP)
-	hof = tools.HallOfFame(1)
+	hof = tools.HallOfFame(3)
 
 	stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 	stats_size = tools.Statistics(len)
@@ -607,34 +549,45 @@ def main():
 
 		best = tools.selBest(pop, 1)[0]
 
-		#evalRuns = 5
-		#evalRunGame(best, evalRuns)
+		evalRuns = 10
+		val = evalRunGame(best, evalRuns)
 
 		# display the run of the best individual	
-		#displayStrategyRun(best)
+		displayStrategyRun(best)
 
 	except KeyboardInterrupt:
 		pool.terminate()
 		pool.join()
 		raise KeyboardInterrupt
 
-	#plotGraph(logbook)
-
 	# section for creating graph to represent the evolution
 	#expr = toolbox.individual()
+	#nodes, edges, labels = gp.graph(best)
+	#g = pgv.AGraph()
+	#g.add_nodes_from(nodes)
+	#g.add_edges_from(edges)
+	#g.layout(prog="dot")
 
+	#for i in nodes:
+	#	n = g.get_node(i)
+	#	n.attr["label"]=labels[i]
 
+	#g.draw("tree.pdf")
 
-	return mstats.compile(pop)
+	return mstats.compile(pop), val
+
 
 
 
 if __name__ == "__main__":
-	for i in range(0, 30):
-		out = main()
-		run = out
-		row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], "\r")
-		runFile = open('ncount.csv', 'a+')
-		runFile.write(",".join(map(str,row)))
-		runFile.close()
+	main()	
+	#for i in range(0, 30):
+	#	out = main()
+	#	run = out[0]
+	#	row = (run['fitness']['avg'], run['fitness']['min'], run['fitness']['std'], run['size']['avg'], run['size']['max'], run['size']['std'], out[1], "\r")
+	#	runFile = open("snakeProblem.csv', 'a+')
+	#	runFile.write(",".join(map(str,row)))
+	#	runFile.close()
+
+
 

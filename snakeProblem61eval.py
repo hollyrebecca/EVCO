@@ -433,10 +433,10 @@ def runGame(individual):
 
 			distanceFromFood = math.ceil(ydist) + math.ceil(xdist)
 
-			return TOTALFOOD + distanceFromFood,
-		#	return 0 - distanceFromFood,
 
-		aggScore += (TOTALFOOD - totalScore)
+			aggScore += TOTALFOOD + distanceFromFood
+		else:
+			aggScore += (TOTALFOOD - totalScore)
 
 	avgScore = aggScore/NCOUNT
 	return avgScore,
@@ -483,9 +483,10 @@ def evalRunGame(individual, runs):
 
 			distanceFromFood = math.ceil(ydist) + math.ceil(xdist)
 
-			return TOTALFOOD + distanceFromFood,
 
-		aggScore += (TOTALFOOD - totalScore)
+			aggScore += TOTALFOOD + distanceFromFood
+		else:
+			aggScore += (TOTALFOOD - totalScore)
 
 	avgScore = aggScore/runs
 	return avgScore,
